@@ -1,0 +1,513 @@
+/**
+ * Serves the HTML frontend interface.
+ */
+function doGet() {
+    return HtmlService.createTemplateFromFile('index')
+        .evaluate()
+        .setTitle('NAYA PRO - Google DOCX to Form Converter')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/**
+ * Escapes special characters for use in regular expressions.
+ */
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Fetches an image from a public URL and returns it as a Google Apps Script Blob.
+ */
+function getPublicImageBlobFromUrl(imageUrl) {
+    try {
+        const imageBlob = UrlFetchApp.fetch(imageUrl).getBlob();
+        return imageBlob;
+    } catch (e) {
+        Logger.log(`Gagal mengambil blob gambar: ${e.toString()}`);
+        return null;
+    }
+}
+
+/**
+ * Extracts image instructions from a text and returns the cleaned text and image URL.
+ */
+function extractImageAndCleanText(text) {
+    const imageMatch = text.match(/Gambar:\s*(https?:\/\/[^\s]+)/i);
+    let cleanText = text;
+    let imageUrl = null;
+
+    if (imageMatch) {
+        imageUrl = imageMatch[1];
+        cleanText = text.replace(new RegExp(escapeRegExp(imageMatch[0]), 'i'), '').trim();
+    }
+
+    return { cleanText, imageUrl };
+}
+
+/**
+ * Converts a Base64 encoded DOCX file into a live Google Doc using Advanced Drive Service.
+ */
+function convertDocxToGoogleDoc(base64Data, fileName) {
+    try {
+        const decoded = Utilities.base64Decode(base64Data);
+        const docxBlob = Utilities.newBlob(decoded, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+
+        // Metadata properties for the new Google Doc
+        const fileMetadata = {
+            title: fileName.replace(/\.docx$/i, ''),
+            mimeType: "application/vnd.google-apps.document"
+        };
+
+        // Insert into Google Drive to trigger conversion
+        const convertedFile = Drive.Files.insert(fileMetadata, docxBlob);
+
+        // Berikan jeda waktu (delay) agar Google Drive menyelesaikan sinkronisasi teks file
+        Utilities.sleep(1500);
+
+        return convertedFile.id;
+    } catch (e) {
+        throw new Error(`Gagal mengonversi file DOCX ke Google Doc: ${e.toString()}`);
+    }
+}
+
+/**
+ * Main process executing Google Form generation based on dynamic user configuration.
+ */
+function executeFormGeneration(config) {
+  let tempDocIdCreated = null;
+  try {
+    let docId = config.docId;
+    const pointPG = config.pointPG || 2;
+    const pointIsian = config.pointIsian || 4;
+    const isRequired = config.isRequired;
+    const limitOne = config.limitOne;
+    const setProgressBar = config.setProgressBar;
+    const shuffle = config.shuffle;
+    const collectEmail = config.collectEmail || "NONE";
+    let inputKelas = config.inputKelas || "SD";
+    const inputToken = config.inputToken ? config.inputToken.trim() : '';
+    const customTitle = config.formTitle ? config.formTitle.trim() : "";
+    const confirmationMessage = config.confirmationMessage ? config.confirmationMessage.trim() : "";
+
+    // 1. Convert DOCX upload to temporary Google Doc first if chosen
+    if (config.sourceType === 'docxUpload') {
+      tempDocIdCreated = convertDocxToGoogleDoc(config.docxBase64, config.docxFileName);
+      docId = tempDocIdCreated;
+    }
+
+    // 2. Open Google Doc
+    const doc = DocumentApp.openById(docId);
+    let docText = doc.getBody().getText().trim();
+    
+    // PEMBERSIHAN TEKS: Bersihkan karakter whitespace aneh & ganti "smart quotes" Word ke standar ASCII
+    docText = docText.replace(/[\u200B-\u200D\uFEFF]/g, '') // Hapus Zero Width Spaces
+                     .replace(/[\u201C\u201D]/g, '"')      // Ganti Smart Double Quotes ke standar
+                     .replace(/[\u2018\u2019]/g, "'");     // Ganti Smart Single Quotes ke standar
+
+    // PEMISAHAN BARIS: Mendukung \r\n (Windows), \r (Mac), maupun \n (Unix)
+    const lines = docText.split(/\r?\n|\r/).map(l => l.trim());
+    const allCleanLines = lines.filter(l => l.length > 0);
+
+    if (allCleanLines.length === 0) {
+      throw new Error("Berkas dokumen kosong! Silakan periksa kembali berkas/link Anda.");
+    }
+
+    // 3. Extract Document Title & Descriptions
+    let docTitle = allCleanLines[0] || "Ujian Baru Tanpa Judul"; 
+    let docDescriptionLines = [];
+    let questionStartIndex = allCleanLines.length; 
+
+    for (let i = 1; i < allCleanLines.length; i++) {
+        const line = allCleanLines[i];
+        if (line.match(/^\d+\.\s/) || line.toLowerCase().includes("paragraf untuk soal")) {
+            questionStartIndex = i;
+            break;
+        }
+        docDescriptionLines.push(line);
+    }
+
+    const docDescription = docDescriptionLines.join('\n');
+    const cleanLines = allCleanLines.slice(questionStartIndex); 
+    
+    // Set appropriate unique filename in Drive
+    let finalTitle = customTitle !== "" ? customTitle : docTitle;
+    let counter = 1;
+    const originalTitle = finalTitle;
+    
+    while (DriveApp.getFilesByName(finalTitle).hasNext()) {
+      finalTitle = `(${counter}) ${originalTitle}`;
+      counter++;
+    }
+    
+    // 4. Instantiate Google Form
+    const form = FormApp.create(finalTitle); 
+    form.setTitle(customTitle !== "" ? customTitle : docTitle);
+    form.setDescription(docDescription);
+    form.setIsQuiz(true);
+    
+    // Apply custom confirmation if provided
+    if (confirmationMessage !== "") {
+      form.setConfirmationMessage(confirmationMessage);
+    }
+
+    // Limit Response
+    if (limitOne) {
+      form.setLimitOneResponsePerUser(true);
+    }
+
+    // set ProgressBar
+    if (setProgressBar) {
+      form.setProgressBar(true);
+    }
+    
+    // Shuffle Order
+    if (shuffle) {
+      form.setShuffleQuestions(true);
+    }
+
+    // Apply Email Collection Strategy
+    if (collectEmail === 'RESPONDER_INPUT') {
+      try {
+        form.setEmailCollectionType(FormApp.EmailCollectionType.RESPONDER_INPUT);
+      } catch (e) {
+        form.setCollectEmail(true);
+      }
+    } else if (collectEmail === 'VERIFIED') {
+      try {
+        form.setEmailCollectionType(FormApp.EmailCollectionType.VERIFIED);
+      } catch (e) {
+        form.setCollectEmail(true);
+      }
+    } else {
+      try {
+        form.setEmailCollectionType(FormApp.EmailCollectionType.DO_NOT_COLLECT);
+      } catch (e) {
+        form.setCollectEmail(false);
+      }
+    }
+    if (inputKelas === 'SD') {
+      inputKelas = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
+    } else if (inputKelas === 'SMP') {
+      inputKelas = ['Kelas VII', 'Kelas VIII', 'Kelas IX'];
+    } else {
+      inputKelas = ['Kelas X', 'Kelas XI', 'Kelas XII'];
+    }
+
+    // ==========================================
+    // Tambahan Bagian 1: Identitas Peserta Otomatis
+    // ==========================================
+    
+    // Pertanyaan 1: Nama (Jawaban Singkat)
+    const namaItem = form.addTextItem();
+    namaItem.setTitle('Nama Lengkap')
+            .setRequired(true);
+
+    // Pertanyaan 2: Kelas (Dropdown)
+    // Catatan: Isian pilihan kelas bisa disesuaikan atau dilempar melalui config jika dinamis
+    const kelasItem = form.addListItem();
+    // if (config.inputKelas && typeof config.inputKelas === 'string') {
+    //   inputKelas = config.inputKelas.split(',')
+    //                              .map(k => k.trim())
+    //                              .filter(Boolean);
+    // }
+    kelasItem.setTitle('Kelas')
+             .setChoiceValues(inputKelas) 
+             .setRequired(true);
+
+    // Pertanyaan 3: Token (Jawaban Singkat)
+    if (inputToken !== "") {
+      const tokenItem = form.addTextItem();
+      const tokenPattern = '^' + escapeRegExp(inputToken) + '$';
+      const tokenValidation = FormApp.createTextValidation()
+      .requireTextMatchesPattern(tokenPattern)
+      .setHelpText('Token ujian salah! Silakan tanyakan pada Pengawas.')
+      .build();
+      tokenItem.setTitle('Token / Kode Ujian')
+               .setValidation(tokenValidation)
+               .setRequired(true);
+    }
+
+    // Pemisahan Section: Membuat Section Break untuk memisahkan Identitas dengan Soal
+    const sectionSoal = form.addPageBreakItem();
+    sectionSoal.setHelpText(docDescription);
+
+    // ==========================================
+
+    let currentContextText = ""; 
+    let questionCounter = 0; // Penghitung jumlah pertanyaan kuis yang berhasil dibuat
+
+    // 5. UNIFIED BLOCK PARSER ENGINE
+    let i = 0;
+    while (i < cleanLines.length) {
+      const line = cleanLines[i];
+
+      // Deteksi awal sebuah blok soal (Contoh: "1. Teks Soal")
+      const questionMatch = line.match(/^(\d+)\.\s*(.+)$/);
+      if (questionMatch) {
+        // Jika ada akumulasi paragraf petunjuk/cerita sebelumnya, buat Section Header terlebih dahulu
+        if (currentContextText.trim().length > 0) {
+          form.addSectionHeaderItem().setTitle(currentContextText);
+          currentContextText = ""; 
+        }
+        
+        const soalNumber = questionMatch[1];
+        const rawSoalText = questionMatch[2];
+        
+        const { cleanText: soalText, imageUrl: questionImageUrl } = extractImageAndCleanText(rawSoalText);
+        const pertanyaanText = `${soalNumber}. ${soalText}`; 
+        
+        // Buat item gambar jika terdapat instruksi URL Gambar pada teks soal
+        if (questionImageUrl) {
+          const imageBlob = getPublicImageBlobFromUrl(questionImageUrl);
+          if (imageBlob) {
+            form.addImageItem()
+                .setTitle(`Gambar untuk Soal ${soalNumber}`) 
+                .setImage(imageBlob);
+          }
+        }
+
+        // Penampung komponen blok soal ini
+        const opsi = [];
+        let jawabanText = ""; 
+        let isCheckbox = false;
+        let isShortAnswer = false;
+        let shortAnswerKey = "";
+        let isGrid = false;
+        const gridRows = [];
+        const gridCols = [];
+        let gridMode = "row"; 
+
+        // Scan baris-baris berikutnya yang merupakan bagian dari soal ini
+        let j = i + 1;
+        while (j < cleanLines.length) {
+          const nextLine = cleanLines[j];
+          
+          // Berhenti scan jika baris berikutnya adalah awal dari nomor soal baru
+          if (nextLine.match(/^\d+\.\s/)) {
+            break;
+          }
+
+          // Deteksi Opsi Pilihan (A. s/d D.)
+          const optMatch = nextLine.match(/^[A-D]\.\s*(.+)$/i);
+          if (optMatch) {
+            opsi.push(optMatch[1]);
+            j++;
+            continue;
+          }
+
+          // Deteksi Kunci Jawaban Pilihan Ganda / Checkbox
+          const ansMatch = nextLine.match(/^Jawaban:\s*([A-Z](,\s*[A-Z])*)\s*$/i);
+          if (ansMatch) {
+            jawabanText = ansMatch[1].trim().toUpperCase().replace(/\s/g, ''); 
+            isCheckbox = jawabanText.includes(','); 
+            j++;
+            continue;
+          }
+
+          // Deteksi Kunci Jawaban Singkat
+          const saMatch = nextLine.match(/^Jawaban Singkat:\s*(.*)$/i);
+          if (saMatch) {
+            isShortAnswer = true;
+            shortAnswerKey = saMatch[1].split(',').map(v => v.trim()).filter(Boolean);
+            j++;
+            continue;
+          }
+
+          // Deteksi Format Grid
+          if (nextLine.match(/^Grid:/i)) {
+            isGrid = true;
+            j++;
+            continue;
+          }
+
+          // Deteksi Kolom Grid
+          if (nextLine.match(/^Kolom:/i)) {
+            const rest = nextLine.replace(/^Kolom:/i, "").trim();
+            if (rest) {
+              const parts = rest.split(/,(?![^()]*\))|;/)    
+                               .map(s => s.replace(/^\d+\.\s*/, "").trim())
+                               .filter(Boolean);
+              gridCols.push(...parts);
+            }
+            gridMode = "col";
+            j++;
+            continue;
+          }
+
+          // Deteksi Sinyal Jawaban Grid
+          if (nextLine.match(/^Jawaban Grid:/i)) {
+            gridMode = "jawaban";
+            j++;
+            continue;
+          }
+
+          // Akumulasi baris Grid sesuai modenya
+          if (isGrid) {
+            if (gridMode === "row" && nextLine.match(/^[A-Z]\.\s*/)) {
+              gridRows.push(nextLine.replace(/^[A-Z]\.\s*/, "").trim());
+              j++;
+              continue;
+            } else if (gridMode === "col" && nextLine.match(/^\d+\.\s*/)) {
+              gridCols.push(nextLine.replace(/^\d+\.\s*/, "").trim());
+              j++;
+              continue;
+            }
+          }
+
+          // JIKA BARIS TIDAK COCOK DENGAN POLA SOAL APAPUN (A-D, JAWABAN, DLL):
+          break;
+        }
+
+        // Geser indeks utama langsung ke batas akhir scan blok soal ini
+        i = j;
+
+        let itemCreated = false;
+
+        // --- KONSTRUKSI ELEMEN FORM ---
+        if (isShortAnswer) {
+          // 1. Pembuatan tipe JAWABAN SINGKAT (Short Answer)
+          const item = form.addTextItem();
+          item.setTitle(pertanyaanText); 
+          item.setPoints(pointIsian);
+          item.setRequired(isRequired);
+
+          // Masukkan kunci jawaban ke Feedback (karena limitasi native Apps Script pada TextItem)
+          if (shortAnswerKey) {
+            const feedback = FormApp.createFeedback()
+              .setText("Jawaban yang benar:\n" + shortAnswerKey.join('\n'))
+              .build();
+            item.setGeneralFeedback(feedback);
+          }
+          itemCreated = true;
+        } 
+        else if (isGrid && gridRows.length > 0 && gridCols.length > 0) {
+          // 2. Pembuatan tipe GRID MULTIPLE CHOICE
+          const item = form.addGridItem(); 
+          item.setTitle(pertanyaanText) 
+              .setRows(gridRows)
+              .setColumns(gridCols);
+          item.setRequired(isRequired);
+          itemCreated = true;
+        } 
+        else if (opsi.length > 0) {
+          // 3. Pembuatan tipe PILIHAN GANDA atau CHECKBOX
+          const seenOptions = new Set();
+          const processedOpsi = opsi.map((opt, index) => {
+              if (seenOptions.has(opt)) {
+                  return `${opt} [Opsi ${String.fromCharCode(65 + index)}]`;
+              }
+              seenOptions.add(opt);
+              return opt;
+          });
+
+          if (isCheckbox) {
+            const item = form.addCheckboxItem();
+            item.setTitle(pertanyaanText); 
+            const jawabanArray = jawabanText.split(','); 
+
+            const choices = processedOpsi.map((opt, idx) => {
+              const isCorrect = jawabanArray.includes(String.fromCharCode(65 + idx));
+              return item.createChoice(opt, isCorrect); 
+            });
+
+            item.setChoices(choices);
+            item.setPoints(pointPG);
+            item.setRequired(isRequired); 
+          } else {
+            const item = form.addMultipleChoiceItem();
+            item.setTitle(pertanyaanText); 
+
+            const choices = processedOpsi.map((opt, idx) =>
+              item.createChoice(opt, String.fromCharCode(65 + idx) === jawabanText) 
+            );
+
+            item.setChoices(choices);
+            item.setPoints(pointPG);
+            item.setRequired(isRequired); 
+          }
+          itemCreated = true;
+        }
+
+        // --- LOGIKA HALAMAN KELIPATAN 20 SOAL ---
+        if (itemCreated) {
+          questionCounter++;
+          if (questionCounter % 20 === 0) {
+            let hasMoreQuestions = false;
+            for (let k = i; k < cleanLines.length; k++) {
+              if (cleanLines[k].match(/^\d+\.\s/)) {
+                hasMoreQuestions = true;
+                break;
+              }
+            }
+            if (hasMoreQuestions) {
+              const nextSectionNum = Math.floor(questionCounter / 20) + 1;
+              form.addPageBreakItem().setHelpText(docDescription);
+            }
+          }
+        }
+        
+        continue;
+      }
+
+      // --- AKUMULASI TEKS INSTRUKSI / PETUNJUK GAMBAR NON-URUT ---
+      const contextImageMatch = line.match(/^(Gambar:\s*(https?:\/\/[^\s]+))\s*(.*)/i);
+      let lineToAccumulate = line;
+
+      if (contextImageMatch) {
+          const contextImageUrl = contextImageMatch[2]; 
+          lineToAccumulate = contextImageMatch[3].trim(); 
+          
+          const imageBlob = getPublicImageBlobFromUrl(contextImageUrl);
+          if (imageBlob) {
+              form.addImageItem()
+                  .setTitle(`Gambar untuk beberapa pertanyaan`) 
+                  .setImage(imageBlob);
+          }
+      }
+      
+      if (lineToAccumulate.length > 0) {
+          if (currentContextText.length > 0) {
+              currentContextText += "\n";
+          }
+          currentContextText += lineToAccumulate;
+      }
+      
+      i++;
+    }
+
+    // Masukkan sisa teks instruksi di akhir dokumen jika ada
+    if (currentContextText.trim().length > 0) {
+      form.addSectionHeaderItem().setTitle(currentContextText);
+    }
+
+    // 6. Automatic cleanup option
+    let tempDocTrashed = false;
+    if (config.sourceType === 'docxUpload' && config.autoCleanGDoc && tempDocIdCreated) {
+      DriveApp.getFileById(tempDocIdCreated).setTrashed(true);
+      tempDocTrashed = true;
+    }
+
+    return {
+      success: true,
+      title: finalTitle,
+      editUrl: form.getEditUrl(),
+      publishedUrl: form.getPublishedUrl(),
+      previewUrl: form.getEditUrl().replace(/\/edit$/, '/preview'),
+      tempDocTrashed: tempDocTrashed
+    };
+
+  } catch (error) {
+    if (tempDocIdCreated) {
+      try {
+        DriveApp.getFileById(tempDocIdCreated).setTrashed(true);
+      } catch (trashError) {
+        // Abaikan error pada trash fallback
+      }
+    }
+    return {
+      success: false,
+      message: "Terdapat Kesalahan ◉ " + error.toString()
+    };
+  }
+}

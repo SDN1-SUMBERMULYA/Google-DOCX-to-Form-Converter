@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAYA PRO - Google DOCX to Form Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+</script>
+    <style>
+        @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen font-sans flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-slate-50 dark:bg-slate-900 border-b border-blue-600 dark:border-slate-700 sticky top-0 z-50 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Left -->
+                <div class="flex items-center space-x-3">
+                    <!-- Hamburger -->
+                    <button id="mobileMenuBtn" class="md:hidden text-slate-500 hover:text-slate-600 transition">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <!-- Logo -->
+                    <div class="bg-blue-600 dark:bg-slate-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-200 flex items-center justify-center">
+                        <i class="fa-solid fa-file-word text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
+                            NAYA
+                            <span class="text-blue-600 dark:text-slate-500">PRO</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 font-medium">
+                            DOCX To FORM Converter Engine v2.0
+                        </p>
+                    </div>
+                </div>
+                <!-- Profile Button -->
+                <button id="profileBtn" class="hidden md:flex items-center gap-3 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2 rounded-xl transition">
+                    <img src="https://sdn1-sumbermulya.github.io/images/agung.png" alt="Agung" class="w-10 h-10 rounded-full border-2 border-blue-500 dark:border-slate-600 dark:grayscale">
+                    <div class="text-left">
+                        <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                            Agung Kahono
+                        </p>
+                        <p class="text-xs text-slate-500">
+                            SDN 1 Sumber Mulya
+                        </p>
+                    </div>
+                    <span class="text-blue-900 dark:text-slate-100">◉</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar -->
+    <div id="mobileMenu" class="fixed top-0 left-0 w-72 h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white shadow-xl z-50 transform -translate-x-full transition-transform duration-300">
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex justify-end items-center">
+                <button id="closeMenu" class="hover:text-slate-500 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="flex items-center gap-3">
+                <img src="https://sdn1-sumbermulya.github.io/images/agung.png" alt="Agung" class="w-14 h-14 rounded-full border-2 border-blue-500 dark:border-slate-600 dark:grayscale">
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Agung Kahono
+                    </h4>
+                    <p class="text-sm text-slate-500">
+                        Operator
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Menu -->
+        <div class="p-4 space-y-2">
+            <!-- <a href="#"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i class="fa-solid fa-house text-blue-600"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="#"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i class="fa-solid fa-file-word text-green-600"></i>
+            <span>Convert DOCX</span>
+        </a>
+
+        <a href="#"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i class="fa-solid fa-folder-open text-amber-600"></i>
+            <span>Dokumen</span>
+        </a> -->
+            <button id="themeToggle" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-left transition">
+                <i class="fa-solid fa-moon text-blue-600 dark:text-slate-200"></i>
+                <span id="themeTextDesktop" class="text-slate-900 dark:text-slate-500">Dark Mode</span>
+            </button>
+            <!-- <hr class="my-2 border-slate-200 dark:border-slate-700"> -->
+            <!-- <a href="#"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a> -->
+        </div>
+    </div>
+    <!-- Overlay -->
+    <div id="overlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left & Center Column: Main Application Area -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Form Control Panel Card -->
+                <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-blue-600 dark:border-slate-600 shadow-sm p-6 sm:p-8">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-400 mb-6 flex items-center">
+                        <i class="fa-solid fa-circle-nodes text-blue-600 dark:text-slate-200 mr-3"></i> Konfigurasi Form & Sumber Berkas
+                    </h2>
+                    <!-- Tab Navigation -->
+                    <div class="flex border-b border-blue-600 dark:border-slate-600 mb-6">
+                        <button onclick="switchTab('tab-link')" id="btn-tab-link" class="flex-1 py-2 text-sm font-bold text-blue-600 dark:text-slate-300 border-b-2 border-blue-600 dark:border-slate-600 transition-all focus:outline-none flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-link"></i> Gunakan Tautan Doc
+                        </button>
+                        <button onclick="switchTab('tab-upload')" id="btn-tab-upload" class="border-b-2 border-transparent flex flex-1 focus:outline-none font-semibold gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-200 items-center justify-center py-2 text-slate-500 text-sm transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Berkas DOCX
+                        </button>
+                    </div>
+                    <form id="proConfigForm" onsubmit="handleProSubmit(event)" class="space-y-6">
+                        <!-- Tab 1: Google Doc Link Input -->
+                        <div id="panel-tab-link" class="space-y-4">
+                            <div>
+                                <label for="docIdOrUrl" class="block text-xs font-bold text-slate-900 dark:text-slate-400 uppercase tracking-wider mb-2">
+                                    ID Dokumen / URL Google Docs
+                                </label>
+                                <div class="relative rounded-xl shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                                    </div>
+                                    <input type="text" id="docIdOrUrl" placeholder="https://docs.google.com/document/d/..." class="bg-slate-100 dark:bg-slate-900 text-slate-500 block w-full pl-10 pr-3 py-3 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm placeholder-slate-400 transition-all">
+                                </div>
+                                <p class="mt-2 text-xs text-slate-500">
+                                    Masukkan URL dokumen Google Doc. Pastikan dokumen sudah disetel bagikan sebagai "Viewer/Pengakses Lihat saja".
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Tab 2: DOCX File Upload (Initially Hidden) -->
+                        <div id="panel-tab-upload" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-900 dark:text-slate-400 uppercase tracking-wider mb-2">
+                                    Unggah File Word (.docx)
+                                </label>
+                                <div id="dropZone" class="border-2 border-dashed border-blue-600 dark:border-slate-600 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-slate-300 dark:hover:bg-slate-800 transition-all flex flex-col items-center justify-center">
+                                    <input type="file" id="docxFile" accept=".docx" class="hidden" onchange="handleFileSelect(event)">
+                                    <div class="text-blue-600 dark:text-slate-300 mb-3">
+                                        <i class="fa-solid fa-file-word text-3xl"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-500" id="uploadStatusText">Tarik file .docx ke sini atau <span class="text-blue-600 dark:text-slate-300 underline">Cari Berkas</span></p>
+                                    <p class="text-xs text-slate-400 mt-1">Maksimal ukuran file: 10 MB</p>
+                                </div>
+                            </div>
+                            <!-- Option to auto clean up Google Drive -->
+                            <div class="flex items-center bg-rose-100 dark:bg-slate-600 border border-rose-200 dark:border-slate-500 rounded-xl px-4 py-3">
+                                <input type="checkbox" id="autoCleanGDoc" checked class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-amber-300 rounded transition-all">
+                                <label for="autoCleanGDoc" class="ml-3 block text-xs font-medium text-amber-900 dark:text-slate-400 cursor-pointer">
+                                    Hapus file Google Doc temporer di Drive saya secara otomatis setelah konversi selesai (Sangat Direkomendasikan)
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Global Form Configurations -->
+                        <div class="border-t border-blue-600 dark:border-slate-600 pt-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-400 flex items-center">
+                                <i class="fa-solid fa-sliders text-blue-600 dark:text-slate-200 mr-2"></i> Pengaturan Kustomisasi Google Form
+                            </h3>
+                            <div class="sm:grid grid-cols-2 sm:grid-cols-2 gap-4">
+                                <!-- Custom Title -->
+                                <div>
+                                    <label for="formCustomTitle" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Judul Google Form (Opsional)
+                                    </label>
+                                    <input type="text" id="formCustomTitle" placeholder="Contoh: Ujian Akhir Semester 2026 (Kosongkan untuk menyamakan dengan dokumen)" class="bg-slate-100 dark:bg-slate-900 block w-full px-4 py-3 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all">
+                                </div>
+                                <div>
+                                    <label for="inputToken" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Token
+                                    <small class="inline-block text-slate-600">Kosongkan jika Quiz tidak menggunakan Token.</small>
+                                    </label>
+                                    <input type="text" id="inputToken" placeholder="Contoh: UJIAN" class="bg-slate-100 dark:bg-slate-900 block w-full px-4 py-3 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all">
+                                </div>
+                                <!-- Record Email Feature -->
+                                <div>
+                                    <label for="collectEmail" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Kumpulkan Email Responden
+                                    </label>
+                                    <select id="collectEmail" class="block w-full px-3 py-3 border border-blue-600 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all text-slate-500">
+                                        <option class="text-slate-500" value="VERIFIED" selected>Verifikasi Akun (Hanya Google Workspace)</option>
+                                        <option class="text-slate-500" value="RESPONDER_INPUT">Input Manual (Verifikasi Form)</option>
+                                        <option class="text-slate-500" value="NONE">Jangan Kumpulkan Email</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="inputKelas" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Jenjang Pendidikan
+                                    </label>
+                                    <select id="inputKelas" class="block w-full px-3 py-3 border border-blue-600 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all text-slate-500">
+                                        <option class="text-slate-500" value="SD" selected>SD</option>
+                                        <option class="text-slate-500" value="SMP">SMP</option>
+                                        <option class="text-slate-500" value="SMA">SMA</option>
+                                    </select>
+                                </div>
+                                <!-- Default Point Input -->
+                                <div class="relative">
+                                    <label for="pointPG" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Poin Default Soal Pilihan Ganda
+                                    </label>
+                                    <input type="number" id="pointPG" min="0" value="2" required class="bg-slate-100 dark:bg-slate-900 text-slate-500 block w-full px-3 py-3 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all">
+                                    <div class="absolute inset-y-0 top-5 pl-10 flex items-center pointer-events-none">
+                                        <span class="text-xs text-slate-500">POIN</span>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <label for="pointIsian" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Poin Default Soal Esay
+                                    </label>
+                                    <input type="number" id="pointIsian" min="0" value="4" required class="bg-slate-100 dark:bg-slate-900 text-slate-500 block w-full px-3 py-3 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all">
+                                    <div class="absolute inset-y-0 top-5 pl-10 flex items-center pointer-events-none">
+                                        <span class="text-xs text-slate-500">POIN</span>
+                                    </div>
+                                </div>
+                                <!-- Custom Confirmation Message -->
+                                <div class="col-span-2">
+                                    <label for="confirmationMessage" class="block text-xs font-bold text-slate-900 dark:text-slate-400 tracking-wider mb-1.5">
+                                        Pesan Konfirmasi Setelah Kirim Form (Kustom)
+                                    </label>
+                                    <textarea id="confirmationMessage" rows="2" placeholder="Contoh: Jawaban Anda telah direkam. Semoga mendapatkan hasil yang terbaik!" class="bg-slate-100 dark:bg-slate-900 block w-full px-2 py-2 h-12 border border-blue-600 dark:border-slate-600 rounded-xl focus:ring-2 focus-visible:outline-none dark:focus:ring-slate-500 text-sm transition-all text-slate-500">Jawaban Anda telah direkam. Semoga mendapatkan hasil yang terbaik!</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Quick Toggle Settings -->
+                        <div class="border-t border-blue-600 dark:border-slate-600 pt-6 space-y-3">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilihan Tambahan</h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="flex items-center h-10 bg-slate-100 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl px-1">
+                                    <input type="checkbox" id="isRequired" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded transition-all">
+                                    <label for="isRequired" class="ml-1 block text-xs font-semibold text-slate-900 dark:text-slate-400 cursor-pointer">
+                                        Setel Semua Soal Wajib
+                                    </label>
+                                </div>
+                                <div class="flex items-center h-10 bg-slate-100 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl px-1">
+                                    <input type="checkbox" id="setProgressBar" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded transition-all">
+                                    <label for="setProgressBar" class="ml-1 block text-xs font-semibold text-slate-900 dark:text-slate-400 cursor-pointer">
+                                        Tampilkan Progress Bar
+                                    </label>
+                                </div>
+                                <div class="flex items-center h-10 bg-slate-100 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl px-1">
+                                    <input type="checkbox" id="limitOne" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded transition-all">
+                                    <label for="limitOne" class="ml-1 block text-xs font-semibold text-slate-900 dark:text-slate-400 cursor-pointer">
+                                        Batasi 1 Tanggapan
+                                    </label>
+                                </div>
+                                <div class="flex items-center h-10 bg-slate-100 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl px-1">
+                                    <input type="checkbox" id="shuffle" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded transition-all">
+                                    <label for="shuffle" class="ml-1 block text-xs font-semibold text-slate-900 dark:text-slate-400 cursor-pointer">
+                                        Acak Urutan Soal
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="pt-4">
+                            <button type="submit" id="btnSubmit" class="bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Output Cards & Log Consoles -->
+                <div id="outputArea" class="hidden space-y-6" tabindex="-1">
+                    <!-- Success Status Card -->
+                    <div id="successCard" class="bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl border-2 border-emerald-500/30 dark:border-slate-500/30 shadow-lg space-y-5 animate-fadeIn">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-emerald-500 dark:bg-slate-500 rounded-xl text-white shadow-md shadow-emerald-200 dark:shadow-slate-200">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 dark:text-slate-400 text-lg">Ujian Berhasil Dibuat!</h3>
+                                <p class="text-amber-500 dark:text-slate-500 text-sm animate-[blink_0.8s_infinite]">Google Form kuis Anda telah aktif, Periksa kembali tiap soal &amp; jawaban. (Terutama Jawaban Singkat)</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl p-4 space-y-3.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold text-slate-500 tracking-wider">LINK EDITOR ADMIN</span>
+                                <span class="text-xs font-medium text-amber-600 dark:text-slate-500 dark:bg-slate-900 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 dark:border-slate-500">Bisa Diedit</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-normal">Gunakan link ini untuk mengedit soal, kunci jawaban, atau melihat respon siswa di spreadsheet.</p>
+                            <div class="flex gap-2">
+                                <a id="resFormUrl" href="#" class="hidden"></a>
+                                <a id="editFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white dark:text-slate-300 bg-blue-600 dark:bg-blue-900 hover:bg-blue-700 dark:hover:bg-blue-500 transition-all text-xs font-bold">
+                                    <i class="fa-solid fa-pencil"></i> Buka Editor Form
+                                </a>
+                                <a id="lihatFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white dark:text-slate-300 bg-emerald-600 dark:bg-emerald-900 hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-all text-xs font-bold">
+                                    <i class="fa-solid fa-eye"></i> Buka Form Preview
+                                </a>
+                                <button type="button" onclick="copyToClipboard('resFormUrl')" class="border border-slate-400 dark:border-slate-500 font-bold bg-slate-300 dark:bg-slate-500 hover:bg-blue-100 dark:hover:bg-slate-400 px-2 py-2.5 rounded-lg text-slate-500 dark:text-slate-200 text-xs transition-all">
+                                    <i class="fa-solid fa-copy"></i> Salin Link
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Failure Card -->
+                    <div id="errorCard" class="hidden bg-rose-50 dark:bg-slate-900 p-6 rounded-2xl border-2 border-rose-500/30 dark:border-slate-500/30 shadow-lg space-y-5 animate-fadeIn">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-rose-500 dark:bg-slate-500 rounded-xl text-white shadow-md shadow-rose-200 dark:shadow-slate-200">
+                                <i class="fa-solid fa-circle-xmark text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 dark:text-slate-400 text-lg">Proses Konversi Terhenti</h3>
+                                <p class="text-xs text-rose-700 dark:text-rose-500 mt-1">Google Form baru mungkin sudah dibuat. Tetapi belum lengkap.</p>
+                                <p id="errorText" class="text-xs text-rose-700 dark:text-rose-500 mt-1">Gagal membaca berkas atau struktur format tidak valid.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Dynamic Live Terminal -->
+                <div id="terminalLog" class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden" tabindex="-1">
+                    <div class="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-slate-800">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span class="text-[10px\] sm:text-xs font-semibold text-slate-400 pl-2">System Terminal Logs</span>
+                        </div>
+                        <button onclick="clearLogs()" class="text-slate-500 hover:text-slate-300 text-xs transition-all">
+                            <i class="fa-solid fa-trash-can"></i> Clear Log
+                        </button>
+                    </div>
+                    <div id="logConsole" class="p-5 font-mono text-[10px\] sm:text-xs text-slate-300 space-y-2 h-64 overflow-y-auto bg-slate-950 leading-relaxed">
+                        <div class="text-slate-500">// Menunggu inisiasi konversi...
+                            <p class="animate-[blink_1s_infinite]">|</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Column: Instructions Panel -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Info Format Card -->
+                <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-blue-600 dark:border-slate-600 shadow-sm p-6">
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-slate-400 mb-4 flex items-center">
+                        <i class="fa-solid fa-graduation-cap text-blue-600 dark:text-blue-200 mr-2"></i> Standar Penulisan Soal
+                    </h2>
+                    <div class="space-y-4 text-xs text-slate-600 leading-relaxed">
+                        <div>
+                            <span class="font-bold text-slate-900 dark:text-slate-500 block mb-1">Judul Utama & Deskripsi:</span>
+                            <p class="bg-slate-950 p-2.5 text-indigo-300 rounded-lg border border-slate-600">Paragraf pertama di dokumen akan dijadikan Judul Google Form secara default (kecuali Anda menyetel judul kustom di form).</p>
+                        </div>
+                        <div>
+                            <span class="font-bold text-slate-900 dark:text-slate-500 block mb-1">Multiple Choice (Pilihan Ganda):</span>
+                            <pre class="bg-slate-950 text-emerald-400 p-2.5 rounded-lg overflow-x-auto text-[11px\]">1. Siapa presiden pertama Indonesia?
+A. Ir. Soekarno
+B. Drs. Moh. Hatta
+C. Soeharto
+Jawaban: A</pre>
+                        </div>
+                        <div>
+                            <span class="font-bold text-slate-900 dark:text-slate-500 block mb-1">Short Answer (Jawaban Singkat):</span>
+                            <pre class="bg-slate-950 text-emerald-400 p-2.5 rounded-lg overflow-x-auto text-[11px\]">2. Berapa hasil dari 10 + 25?
+Jawaban Singkat: 35
+(* Jawaban tidak otomatis Masuk kedalam Form)</pre>
+                        </div>
+                        <div>
+                            <span class="font-bold text-slate-900 dark:text-slate-500 block mb-1">Menyertakan Gambar atau Paragraf:</span>
+                            <pre class="bg-slate-950 text-indigo-300 p-2.5 rounded-lg overflow-x-auto text-[11px\]">
+Perhatikan hewan berikut!
+Gambar:https://url_gambar.kamu
+3. Apa nama hewan di atas?
+A. Gajah
+B. Singa
+Jawaban: A
+
+4. Budi sedang Menggambar apa?
+Gambar:https://url_gambar.kamu
+A. Gajah
+B. Singa
+Jawaban: A
+
+Perhatikan daftar bangun berikut:
+1) Persegi panjang
+2) Belah ketupat
+3) Jajar genjang
+4) Trapesium
+5. Bangun yang kedua diagonalnya pasti
+   sama panjang adalah ....
+a. 1
+b. 2
+c. 3
+d. 4
+Jawaban: B
+</pre>
+                        </div>
+                    </div>
+                </div>
+                <!-- Deployment Manual Guide -->
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md">
+                    <h3 class="text-xs font-extrabold text-blue-400 dark:text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                        <i class="fa-solid fa-circle-info text-blue-400 dark:text-blue-200 mr-2"></i> Informasi Deployment
+                    </h3>
+                    <ul class="text-xs text-slate-300 dark:text-slate-500 space-y-3 pl-4 list-disc leading-relaxed">
+                        <li>Pastikan file <strong class="text-blue-400 dark:text-slate-50">appsscript.json</strong> telah terkonfigurasi di editor Apps Script Anda.</li>
+                        <li>Gunakan pilihan menu <strong class="text-blue-400 dark:text-slate-50">Deploy &gt; New Deployment</strong> pada panel atas Apps Script.</li>
+                        <li>Pastikan opsi <strong class="text-blue-400 dark:text-slate-50">Execute As: Me</strong> dan <strong class="text-blue-400 dark:text-slate-50">Who has access: Anyone</strong> dipilih saat deployment agar web aplikasi berjalan lancar untuk publik.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-slate-50 dark:bg-slate-900 border-t border-blue-600 dark:border-slate-600 mt-auto py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+        &copy; 2026 NAYA Engine PRO. Didukung oleh integrasi Google Drive Core API.
+    </div>
+</footer>
+<div id="popupModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+    <div class="bg-slate-50 dark:bg-slate-900 rounded-xl shadow-xl max-w-md w-full p-5 m-4 transform transition-all scale-95 opacity-0 duration-300" id="modalContent">
+        <div class="bg-slate-50 dark:bg-slate-900 border border-blue-600 dark:border-slate-600 rounded-xl p-4 space-y-3.5">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-500 tracking-wider">Google Form Berhasil Dibuat</span>
+                <button id="closeModalCross" class="text-sm font-extrabold text-amber-600 dark:text-slate-500 dark:bg-slate-900 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-slate-500">&times;</button>
+            </div>
+                <ul class="text-xs text-slate-900 dark:text-slate-500 pl-4 list-disc leading-relaxed">
+                    <li>Periksa kembali tiap soal & jawaban. (Terutama Jawaban Singkat)</li>
+                    <li>Gunakan link ini untuk mengedit soal, kunci jawaban, atau melihat respon siswa di spreadsheet.</li>
+                </ul>
+            <div class="flex gap-2">
+                <a id="resFormUrl" href="#" class="hidden"></a>
+                <a id="editFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-blue-600 dark:bg-blue-900 hover:bg-blue-700 dark:hover:bg-blue-500 transition-all text-xs font-bold">
+                    <i class="fa-solid fa-pencil"></i> Editor Form
+                </a>
+                <a id="lihatFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-emerald-600 dark:bg-emerald-900 hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-all text-xs font-bold">
+                    <i class="fa-solid fa-eye"></i> Form Preview
+                </a>
+                <button type="button" onclick="copyToClipboard('resFormUrl')" class="border border-slate-400 dark:border-slate-500 font-bold bg-slate-300 dark:bg-slate-500 hover:bg-blue-100 dark:hover:bg-slate-400 px-2 py-2.5 rounded-lg text-slate-500 dark:text-slate-200 text-xs transition-all">
+                    <i class="fa-solid fa-copy"></i> Salin Link
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+    const modal = document.getElementById('popupModal');
+    const modalContent = document.getElementById('modalContent');
+    const closeCross = document.getElementById('closeModalCross');
+
+    // Fungsi Membuka Popup
+    function openModal() {
+        modal.classList.remove('hidden');
+        // Sedikit delay agar efek transisi scale/opacity berjalan smooth
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+    // Fungsi Menutup Popup
+    function closeModal() {
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300); // Sesuai dengan durasi transition (duration-300)
+        document.getElementById('outputArea').focus();
+    }
+
+    closeCross.addEventListener('click', closeModal);
+
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMenu = document.getElementById('closeMenu');
+    const overlay = document.getElementById('overlay');
+
+    function openMenu() {
+        mobileMenu.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    }
+
+    function closeMobileMenu() {
+        mobileMenu.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+
+    mobileMenuBtn?.addEventListener('click', openMenu);
+    profileBtn?.addEventListener('click', openMenu);
+    closeMenu?.addEventListener('click', closeMobileMenu);
+    overlay?.addEventListener('click', closeMobileMenu);
+
+    // ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeMobileMenu();
+        }
+    });
+    // Load Theme
+    if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+        document.documentElement.classList.add("dark");
+    }
+
+    function updateThemeText() {
+        const isDark = document.documentElement.classList.contains("dark");
+
+        document.getElementById("themeTextDesktop").textContent =
+            isDark ? "Light Mode" : "Dark Mode";
+
+    }
+
+    updateThemeText();
+
+    function toggleTheme() {
+        document.documentElement.classList.toggle("dark");
+
+        if (document.documentElement.classList.contains("dark")) {
+            localStorage.theme = "dark";
+        } else {
+            localStorage.theme = "light";
+        }
+
+        updateThemeText();
+    }
+
+    document
+        .getElementById("themeToggle")
+        .addEventListener("click", toggleTheme);
+
+    let activeTab = 'tab-link';
+    let uploadedFileBase64 = '';
+    let uploadedFileName = '';
+
+    // Drag and drop handler
+    const dropZone = document.getElementById('dropZone');
+
+    if (dropZone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-blue-500', 'bg-blue-50/50');
+            }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            }, false);
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                document.getElementById('docxFile').files = files;
+                processSelectedFile(files[0]);
+            }
+        });
+        dropZone.addEventListener('click', () => {
+            document.getElementById('docxFile').click();
+        });
+    }
+
+    function switchTab(tabId) {
+        activeTab = tabId;
+        const btnLink = document.getElementById('btn-tab-link');
+        const btnUpload = document.getElementById('btn-tab-upload');
+        const panelLink = document.getElementById('panel-tab-link');
+        const panelUpload = document.getElementById('panel-tab-upload');
+
+        if (tabId === 'tab-link') {
+            btnLink.className = "flex-1 py-2 text-sm font-bold text-blue-600 dark:text-slate-300 border-b-2 border-blue-600 dark:border-slate-600 transition-all focus:outline-none flex items-center justify-center gap-2";
+            btnUpload.className = "border-b-2 border-transparent flex flex-1 focus:outline-none font-semibold gap-2 dark:hover:bg-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 items-center justify-center py-2 text-slate-500 text-sm transition-all";
+            panelLink.classList.remove('hidden');
+            panelUpload.classList.add('hidden');
+            document.getElementById('docIdOrUrl').required = true;
+        } else {
+            btnUpload.className = "flex-1 py-2 text-sm font-bold text-blue-600 dark:text-slate-300 border-b-2 border-blue-600 dark:border-slate-600 transition-all focus:outline-none flex items-center justify-center gap-2";
+            btnLink.className = "border-b-2 border-transparent flex flex-1 focus:outline-none font-semibold gap-2 dark:hover:bg-slate-800 hover:bg-slate-200 dark:hover:text-slate-200 items-center justify-center py-2 text-slate-500 text-sm transition-all";
+            panelUpload.classList.remove('hidden');
+            panelLink.classList.add('hidden');
+            document.getElementById('docIdOrUrl').required = false;
+        }
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            processSelectedFile(file);
+        }
+    }
+
+    function processSelectedFile(file) {
+        if (!file.name.endsWith('.docx')) {
+            log(`Peringatan: File yang diunggah harus memiliki format .docx!`, 'error');
+            return;
+        }
+
+        uploadedFileName = file.name;
+        document.getElementById('uploadStatusText').innerHTML = `Berkas Terpilih: <strong class="text-blue-600 dark:text-slate-300">${file.name}</strong>`;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rawResult = e.target.result;
+            uploadedFileBase64 = rawResult.split(',')[1];
+            log(`Berhasil membaca berkas ${file.name} secara lokal. Siap diproses ke server cloud.`, 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // MODIFIKASI: Menambahkan return logRow agar elemen log bisa disimpan dalam variabel
+    function log(message, type = 'info') {
+        const consoleEl = document.getElementById('logConsole');
+        const timeStamp = new Date().toLocaleTimeString('id-ID', { hour12: false });
+        let colorClass = 'text-slate-300';
+        let icon = '<i class="fa-solid fa-chevron-right mr-1.5 text-slate-500"></i>';
+
+        if (type === 'success') {
+            colorClass = 'text-emerald-400 font-semibold';
+            icon = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-500"></i>';
+        } else if (type === 'error') {
+            colorClass = 'text-rose-400 font-bold';
+            icon = '<i class="fa-solid fa-circle-xmark mr-1.5 text-rose-500"></i>';
+        } else if (type === 'processing') {
+            colorClass = 'text-blue-400';
+            icon = '<i class="fa-solid fa-arrows-spin animate-spin mr-1.5 text-blue-500"></i>';
+        } else if (type === 'custom') {
+            colorClass = 'text-emerald-900 !m-0';
+            icon = '';
+        }
+
+        const logRow = document.createElement('div');
+        if (type === 'custom') {
+            logRow.className = `${colorClass} `;
+            logRow.innerHTML = `<span class="flex font-mono justify-end leading-none text-xs whitespace-pre">${message}</span>`;
+        } else if (type === 'processing') {
+            logRow.className = `${colorClass} py-0.5 flex items-start`;
+            logRow.innerHTML = `<span class="text-slate-600 mr-2 shrink-0">[${timeStamp}]</span> ${icon} <span class="break-all animate-pulse">${message}</span>`;
+        } else {
+            logRow.className = `${colorClass} py-0.5 flex items-start`;
+            logRow.innerHTML = `<span class="text-slate-600 mr-2 shrink-0">[${timeStamp}]</span> ${icon} <span class="break-all">${message}</span>`;
+        }
+
+        if (consoleEl.children.length === 1 && consoleEl.children[0].innerText.includes('Menunggu inisiasi')) {
+            consoleEl.innerHTML = '';
+        }
+
+        consoleEl.appendChild(logRow);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+
+        return logRow;
+    }
+
+    // Fungsi pembantu untuk mempermudah pembaruan log yang sudah ada
+    function updateLogStatus(logElement, newMessage, newType) {
+        if (!logElement) return;
+
+        const timeStamp = new Date().toLocaleTimeString('id-ID', { hour12: false });
+        let colorClass = 'text-slate-300';
+        let icon = '<i class="fa-solid fa-chevron-right mr-1.5 text-slate-500"></i>';
+
+        if (newType === 'success') {
+            colorClass = 'text-emerald-400 font-semibold';
+            icon = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-500"></i>';
+        } else if (newType === 'error') {
+            colorClass = 'text-rose-400 font-bold';
+            icon = '<i class="fa-solid fa-circle-xmark mr-1.5 text-rose-500"></i>';
+        }
+
+        logElement.className = `${colorClass} py-0.5 flex items-start`;
+        logElement.innerHTML = `<span class="text-slate-600 mr-2 shrink-0">[${timeStamp}]</span> ${icon} <span class="break-all">${newMessage}</span>`;
+    }
+
+    function clearLogs() {
+        document.getElementById('logConsole').innerHTML = '<div class="text-slate-500">// Terminal logs dibersihkan.</div>';
+    }
+
+    function extractDocId(str) {
+        const reg = /\/d\/([a-zA-Z0-9-_]+)/;
+        const match = str.match(reg);
+        return match ? match[1] : str.trim();
+    }
+
+    function handleProSubmit(event) {
+        event.preventDefault();
+
+        document.getElementById('outputArea').classList.remove('hidden');
+        document.getElementById('successCard').classList.add('hidden');
+        document.getElementById('errorCard').classList.add('hidden');
+        document.getElementById('outputArea').focus();
+        // clearLogs();
+        document.getElementById("logConsole").focus();
+        btnSubmit.disabled = true;
+        btnSubmit.className = "w-full flex items-center justify-center px-4 py-2 rounded-xl text-white bg-slate-400 cursor-not-allowed transition-all";
+        btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Mengkonversi Berkas Dokumen...`;
+
+        // Menyiapkan Payload Konfigurasi
+        const pointPG = document.getElementById('pointPG').value;
+        const pointIsian = document.getElementById('pointIsian').value;
+        const isRequired = document.getElementById('isRequired').checked;
+        const limitOne = document.getElementById('limitOne').checked;
+        const setProgressBar = document.getElementById('setProgressBar').checked;
+        const shuffle = document.getElementById('shuffle').checked;
+        const formCustomTitle = document.getElementById('formCustomTitle').value;
+        const collectEmail = document.getElementById('collectEmail').value;
+        const inputKelas = document.getElementById('inputKelas').value;
+        const inputToken = document.getElementById('inputToken').value;
+        const confirmationMessage = document.getElementById('confirmationMessage').value;
+        const autoCleanGDoc = document.getElementById('autoCleanGDoc').checked;
+
+        const configObj = {
+            sourceType: activeTab === 'tab-link' ? 'docUrl' : 'docxUpload',
+            docId: activeTab === 'tab-link' ? extractDocId(document.getElementById('docIdOrUrl').value) : '',
+            docxBase64: activeTab === 'tab-upload' ? uploadedFileBase64 : '',
+            docxFileName: activeTab === 'tab-upload' ? uploadedFileName : '',
+            autoCleanGDoc: autoCleanGDoc,
+            pointPG: parseInt(pointPG),
+            pointIsian: parseInt(pointIsian),
+            isRequired: isRequired,
+            limitOne: limitOne,
+            setProgressBar: setProgressBar,
+            shuffle: shuffle,
+            formTitle: formCustomTitle,
+            collectEmail: collectEmail,
+            inputKelas: inputKelas,
+            inputToken: inputToken,
+            confirmationMessage: confirmationMessage
+        };
+
+        const sdnLogoAscii = [
+            "____  ____  _   _      __       ____  _    _",
+            "/ ___||  _ \\| \\ | |    /_ |     / ___|| \\  / |",
+            "\\___ \\| | | |  \\| |     | |     \\___ \\| \\\\// |",
+            " ___) | |_| | |\\  |  _  | |  _   ___) | |\\/| |",
+            "|____/|____/|_| \\_| (_) |_| (_) |____/|_|  |_|"
+        ];
+        if (configObj.sourceType === 'docUrl' && !configObj.docId) {
+            log("Kesalahan : Silahkan Masukkan tautan URL Google Doc atau Unggah berkas .docx Anda!", "error");
+            btnSubmit.disabled = false;
+            btnSubmit.className = "bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full";
+            btnSubmit.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form`;
+            return;
+        }
+        if (configObj.sourceType === 'docxUpload' && !configObj.docxBase64) {
+            log("Kesalahan : Silahkan Unggah berkas .docx atau Masukkan tautan URL Google Doc Anda!", "error");
+            btnSubmit.disabled = false;
+            btnSubmit.className = "bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full";
+            btnSubmit.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form`;
+            return;
+        }
+
+        log(`Memulai proses inisialisasi...`, 'info');
+        log(`Metode Terpilih : ${configObj.sourceType === 'docUrl' ? 'Url Google / ID docx' : 'File Upload (.docx)'}`, 'info');
+        log(`Email Collection Mode : ${configObj.collectEmail}`, 'info');
+        log(`Poin Soal Pilihan Ganda : ${configObj.pointPG} Poin`, 'info');
+        log(`Poin Soal Esay : ${configObj.pointIsian} Poin`, 'info');
+        log(`Jenjang : ${configObj.inputKelas}`, 'info');
+        log(`Token : ${configObj.inputToken === '' ? 'NONE' : configObj.inputToken}`, 'info');
+
+        // MODIFIKASI: Simpan baris log "Mengirim payload..." ke variabel sendingPayloadLog
+        let sendingPayloadLog;
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+            sendingPayloadLog = log(`Mengirim payload kustom ke Cloud Server Apps...`, 'processing');
+
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.className = "bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full";
+                    btnSubmit.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form`;
+
+                    if (response.success) {
+                        // MODIFIKASI: Ubah log pengiriman payload tadi menjadi SUKSES
+                        updateLogStatus(sendingPayloadLog, `Payload berhasil dikirim dan diproses oleh Cloud Server!`, 'success');
+
+                        log(`Nama Form Baru Yang Dibuat : "${response.title}"`, 'success');
+                        if (response.tempDocTrashed) {
+                            log(`Sistem Keamanan : Berkas Google Doc temporer telah dibersihkan dari Google Drive Anda.`, 'success');
+                        }
+                        log(`Proses Pembuatan Google Form Selesai!`, 'success');
+                        sdnLogoAscii.forEach(baris => log(baris, 'custom'));
+                        openModal();
+
+                        document.getElementById('successCard').classList.remove('hidden');
+                        document.getElementById('editFormUrl').href = response.editUrl;
+                        document.getElementById('lihatFormUrl').href = response.previewUrl;
+                        document.getElementById('resFormUrl').href = response.publishedUrl;
+                    } else {
+                        // MODIFIKASI: Ubah log pengiriman payload menjadi ERROR jika proses gagal
+                        updateLogStatus(sendingPayloadLog, `Gagal memproses payload di Cloud Server.`, 'error');
+
+                        log(`Server Error : ${response.message}`, 'error');
+                        document.getElementById('errorCard').classList.remove('hidden');
+                        document.getElementById('errorText').innerText = response.message;
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.className = "bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full";
+                    btnSubmit.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form`;
+
+                    // MODIFIKASI: Ubah log pengiriman payload menjadi ERROR jika koneksi gagal
+                    updateLogStatus(sendingPayloadLog, `Koneksi gagal saat mengirim payload ke Cloud Server.`, 'error');
+
+                    log(`Koneksi Gagal : ${err.message}`, 'error');
+                    document.getElementById('errorCard').classList.remove('hidden');
+                    document.getElementById('errorText').innerText = err.message;
+                })
+                .executeFormGeneration(configObj);
+        } else {
+            // Mode Simulasi Browser Lokal
+            sendingPayloadLog = log(`[Simulasi] Mengirim payload kustom ke Cloud Server Apps...`, 'processing');
+
+            setTimeout(() => {
+                if (configObj.sourceType === 'docxUpload') {
+                    log(`[Simulasi] Mengirim berkas ${configObj.docxFileName} ke Drive API converter...`, 'processing');
+                    log(`[Simulasi] Berhasil mengonversi berkas DOCX ke format Google Docs (ID: mock-doc-123)`, 'success');
+                }
+                log(`[Simulasi] Membaca isi dokumen...`, 'processing');
+                log(`[Simulasi] Menyusun Form: "${configObj.formTitle || 'Form Kuis Baru'}"`, 'info');
+                log(`[Simulasi] Menyinkronkan konfigurasi: Poin PG = ${configObj.pointPG}, Poin Esai= ${configObj.pointIsian}, Email Mode = ${configObj.collectEmail}`, 'info');
+
+                setTimeout(() => {
+                    if (configObj.sourceType === 'docxUpload' && configObj.autoCleanGDoc) {
+                        log(`[Simulasi] Menghapus file Google Docs temporer secara otomatis (ID: mock-doc-123)`, 'success');
+                    }
+                    btnSubmit.disabled = false;
+                    btnSubmit.className = "bg-blue-600 dark:bg-slate-600 border border-transparent cursor-pointer flex focus:outline-none focus:ring-offset-2 font-extrabold hover:bg-blue-500 dark:hover:bg-slate-500 items-center justify-center px-4 py-2 rounded-xl shadow-slate-200 shadow-sm text-sm text-white dark:text-slate-300 transition-all w-full";
+                    btnSubmit.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Proses Konversi & Buat Google Form`;
+
+                    // MODIFIKASI SIMULASI: Ubah log pengiriman simulasi menjadi SUKSES
+                    updateLogStatus(sendingPayloadLog, `[Simulasi] Payload berhasil dikirim dan diproses secara lokal!`, 'success');
+
+                    document.getElementById('successCard').classList.remove('hidden');
+                    document.getElementById('editFormUrl').href = "https://docs.google.com/forms";
+                    log(`[Simulasi] Berhasil membuat Google Form! Klik tombol di atas untuk melihat hasilnya`, 'success');
+                    openModal();
+                }, 1500);
+            }, 1000);
+        }
+    }
+
+    function copyToClipboard(elementId) {
+        const link = document.getElementById(elementId).href;
+        const tempInput = document.createElement("input");
+        tempInput.value = link;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        log(`Link Google Form disalin ke clipboard!`, 'success');
+        log(`${link}`, 'success');
+        document.body.removeChild(tempInput);
+    }
+    </script>
+</body>
+
+</html>
