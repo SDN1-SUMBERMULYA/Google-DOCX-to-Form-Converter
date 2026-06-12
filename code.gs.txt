@@ -18,33 +18,39 @@ function escapeRegExp(string) {
 
 /**
  * Fetches an image from a public URL and returns it as a Google Apps Script Blob.
- */
+*/
 function getPublicImageBlobFromUrl(imageUrl) {
     try {
-        const imageBlob = UrlFetchApp.fetch(imageUrl).getBlob();
-        return imageBlob;
+        // Tambahkan opsi untuk menghindari error fatal
+        const response = UrlFetchApp.fetch(imageUrl, {muteHttpExceptions: true});
+        if (response.getResponseCode() === 200) {
+            return response.getBlob();
+        } else {
+            Logger.log(`Gagal HTTP: ${response.getResponseCode()}`);
+            return null;
+        }
     } catch (e) {
-        Logger.log(`Gagal mengambil blob gambar: ${e.toString()}`);
+        Logger.log(`Error mengambil gambar: ${e.toString()}`);
         return null;
     }
 }
-
 /**
  * Extracts image instructions from a text and returns the cleaned text and image URL.
- */
+*/
 function extractImageAndCleanText(text) {
+    // Regex ini menangani spasi setelah titik dua dan lebih fleksibel
     const imageMatch = text.match(/Gambar:\s*(https?:\/\/[^\s]+)/i);
     let cleanText = text;
     let imageUrl = null;
 
     if (imageMatch) {
         imageUrl = imageMatch[1];
-        cleanText = text.replace(new RegExp(escapeRegExp(imageMatch[0]), 'i'), '').trim();
+        // Menghapus kata "Gambar:..." dari teks agar tidak ikut muncul di soal
+        cleanText = text.replace(imageMatch[0], '').trim();
     }
 
     return { cleanText, imageUrl };
 }
-
 /**
  * Converts a Base64 encoded DOCX file into a live Google Doc using Advanced Drive Service.
  */
@@ -103,7 +109,8 @@ function executeFormGeneration(config) {
     // PEMBERSIHAN TEKS: Bersihkan karakter whitespace aneh & ganti "smart quotes" Word ke standar ASCII
     docText = docText.replace(/[\u200B-\u200D\uFEFF]/g, '') // Hapus Zero Width Spaces
                      .replace(/[\u201C\u201D]/g, '"')      // Ganti Smart Double Quotes ke standar
-                     .replace(/[\u2018\u2019]/g, "'");     // Ganti Smart Single Quotes ke standar
+                     .replace(/[\u2018\u2019]/g, "'")     // Ganti Smart Single Quotes ke standar
+                     .replace(/\u00A0/g, ' ');             // Ganti non-breaking space dengan spasi biasa
 
     // PEMISAHAN BARIS: Mendukung \r\n (Windows), \r (Mac), maupun \n (Unix)
     const lines = docText.split(/\r?\n|\r/).map(l => l.trim());
@@ -243,7 +250,7 @@ function executeFormGeneration(config) {
       const line = cleanLines[i];
 
       // Deteksi awal sebuah blok soal (Contoh: "1. Teks Soal")
-      const questionMatch = line.match(/^(\d+)\.\s*(.+)$/);
+      const questionMatch = line.trim().match(/^(\d+)\.\s*(.+)$/);
       if (questionMatch) {
         // Jika ada akumulasi paragraf petunjuk/cerita sebelumnya, buat Section Header terlebih dahulu
         if (currentContextText.trim().length > 0) {
@@ -451,7 +458,7 @@ function executeFormGeneration(config) {
       }
 
       // --- AKUMULASI TEKS INSTRUKSI / PETUNJUK GAMBAR NON-URUT ---
-      const contextImageMatch = line.match(/^(Gambar:\s*(https?:\/\/[^\s]+))\s*(.*)/i);
+      const contextImageMatch = line.trim().match(/^(Gambar:\s*(https?:\/\/[^\s]+))\s*(.*)/i);
       let lineToAccumulate = line;
 
       if (contextImageMatch) {
