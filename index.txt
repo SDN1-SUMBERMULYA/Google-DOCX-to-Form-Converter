@@ -461,14 +461,14 @@ Jawaban: B
                     <li>Gunakan link ini untuk mengedit soal, kunci jawaban, atau melihat respon siswa di spreadsheet.</li>
                 </ul>
             <div class="flex gap-2">
-                <a id="resFormUrl" href="#" class="hidden"></a>
-                <a id="editFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-blue-600 dark:bg-blue-900 hover:bg-blue-700 dark:hover:bg-blue-500 transition-all text-xs font-bold">
+                <a id="resFormUrl2" href="#" class="hidden"></a>
+                <a id="editFormUrl2" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-blue-600 dark:bg-blue-900 hover:bg-blue-700 dark:hover:bg-blue-500 transition-all text-xs font-bold">
                     <i class="fa-solid fa-pencil"></i> Editor Form
                 </a>
-                <a id="lihatFormUrl" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-emerald-600 dark:bg-emerald-900 hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-all text-xs font-bold">
+                <a id="lihatFormUrl2" href="https://docs.google.com/forms" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-white dark:text-slate-300 bg-emerald-600 dark:bg-emerald-900 hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-all text-xs font-bold">
                     <i class="fa-solid fa-eye"></i> Form Preview
                 </a>
-                <button type="button" onclick="copyToClipboard('resFormUrl')" class="border border-slate-400 dark:border-slate-500 font-bold bg-slate-300 dark:bg-slate-500 hover:bg-blue-100 dark:hover:bg-slate-400 px-2 py-2.5 rounded-lg text-slate-500 dark:text-slate-200 text-xs transition-all">
+                <button type="button" onclick="copyToClipboard('resFormUrl2')" class="border border-slate-400 dark:border-slate-500 font-bold bg-slate-300 dark:bg-slate-500 hover:bg-blue-100 dark:hover:bg-slate-400 px-2 py-2.5 rounded-lg text-slate-500 dark:text-slate-200 text-xs transition-all">
                     <i class="fa-solid fa-copy"></i> Salin Link
                 </button>
             </div>
@@ -820,6 +820,9 @@ Jawaban: B
                         document.getElementById('editFormUrl').href = response.editUrl;
                         document.getElementById('lihatFormUrl').href = response.previewUrl;
                         document.getElementById('resFormUrl').href = response.publishedUrl;
+                        document.getElementById('editFormUrl2').href = response.editUrl;
+                        document.getElementById('lihatFormUrl2').href = response.previewUrl;
+                        document.getElementById('resFormUrl2').href = response.publishedUrl;
                     } else {
                         // MODIFIKASI: Ubah log pengiriman payload menjadi ERROR jika proses gagal
                         updateLogStatus(sendingPayloadLog, `Gagal memproses payload di Cloud Server.`, 'error');
